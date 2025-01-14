@@ -1,0 +1,35 @@
+{
+  "grammars": [
+    {
+      "name": "cshtml",
+      "camelcase": "CsHtml",
+      "scope": "source.cshtml",
+      "file-types": [
+        ".cshtml"
+      ],
+      "injection-regex": "^cshtml$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Parser for cshtml razor files",
+    "authors": [
+      {
+        "name": "Kemal YILDIRIM",
+        "url": "https://github.com/KEMAL-YILDIRIM/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/KEMAL-YILDIRIM/tree-sitter-cshtml"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}
