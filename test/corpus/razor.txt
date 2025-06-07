@@ -525,6 +525,25 @@ Razor Do while
 ===================================
 Razor Using
 ===================================
+@page "/"
+@using BlazorPrettycode
+<PrettyCode CodeFile="snippets/demo.html" />
+---
+
+(cshtml
+  (razor_page
+		(razor_using
+			(invocation_expression
+				(member_access_expression
+					(identifier)
+					(identifier))
+				(argument_list))
+			(block
+				(implicit_html))))
+
+===================================
+Razor Using
+===================================
 @using (Html.BeginForm())
 {
     <div> Email: <input type="email" id="Email" value=""> <button>Register</button> </div>
@@ -613,3 +632,36 @@ Razor Comments
   (explicit_expr
     (identifier))
   (content))
+
+==================
+Mixed HTML and Razor
+==================
+
+@model List<User>
+<div class="users">
+    @foreach (var user in Model)
+    {
+        <div class="user" data-id="@user.Id">
+            <h3>@user.Name</h3>
+            <p>@user.Email</p>
+        </div>
+    }
+</div>
+
+---
+
+(source_file
+  (razor_directive
+    (model_directive
+      (csharp_type_injection)))
+  (html_content)
+  (razor_foreach
+    (csharp_foreach_injection)
+    (razor_block
+      (html_content)
+      (razor_expression
+        (csharp_simple_injection))
+      (html_content)
+      (razor_expression
+        (csharp_simple_injection))
+      (html_content))))
