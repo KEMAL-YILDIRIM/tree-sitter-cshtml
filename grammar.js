@@ -1,184 +1,188 @@
-module.exports = grammar({
-  name: "cshtml",
+module.exports = grammar(
+  {
+    name: "cshtml",
+    conflicts: ($) => [
+      [$._block, $._html],
+    ],
+    externals: ($) => [$._eof],
+    extras: ($) => [$.comment, /\s+/],
+    word: ($) => $.identifier,
 
-  extras: ($) => [/\s/, $.razor_comment],
-
-  rules: {
-    source_file: ($) => repeat($._item),
-
-    _item: ($) =>
-      choice(
-        $.html_content,
-        $.razor_directive,
-        $.razor_code_block,
-        $.razor_expression,
-        $.razor_control_structure,
-        $.text,
-      ),
-
-    // HTML content sections - will be injected by HTML parser
-    html_content: ($) =>
-      prec.right(
-        repeat1(
-          choice(
-            /[^@]+/,
-            seq("@", choice("@@", /[^a-zA-Z_{(]/)), // Escaped @ or non-Razor @
-          ),
-        ),
-      ),
-
-    // Razor directives
-    razor_directive: ($) =>
-      seq(
-        "@",
+    rules: {
+      document: ($) => repeat($._block),
+      _block: ($) =>
         choice(
           $.page_directive,
-          $.model_directive,
-          $.using_directive,
-          $.inject_directive,
-          $.layout_directive,
-          $.section_directive,
+          $.code_block,
+          $.functions_directive,
+          $.expression_block,
+          $.html_block,
+          $.if_statement,
+          $.switch_statement,
+          $.for_statement,
+          $.foreach_statement,
+          $.while_statement,
+          $.try_statement
         ),
+
+      page_directive: ($) =>
+        seq(
+          "@page",
+          $.page_directive_path,
+          optional($._newline)
+        ),
+      page_directive_path: ($) => seq('"', repeat(/[^"]/), '"'),
+      code_block: ($) => seq("@{", repeat($._statement), "}"),
+
+      functions_directive: ($) =>
+        seq("@functions", "{", repeat($._statement), "}"),
+      expression_block: ($) =>
+        choice(
+          seq("@(", repeat($._expression), ")"),
+          seq(
+            "@",
+            choice(
+              $.member_access,
+              $.identifier,
+              $.parenthesized_expression
+            )
+          )
+        ),
+      html_block: ($) => prec.right(repeat1($._html)),
+      _html: ($) => choice(
+        seq($.tag),
+        seq($.text),
+        seq($.expression_block)
       ),
+      comment: ($) => seq("@*", repeat(/[^*]*\*+([^@][^*]*\*+)* /), "@"),
+      tag: ($) =>
+        choice(
+          seq(
+            "<",
+            field("name", $.tag_name),
+            repeat($.attribute),
+            choice(">", "/>")
+          ),
+          seq("</", field("name", $.tag_name), ">")
+        ),
+      tag_name: ($) => /[a-zA-Z0-9\-_]+/,
+      attribute: ($) =>
+        seq(
+          field("name", $.attribute_name),
+          optional(seq("=", field("value", $.attribute_value)))
+        ),
+      attribute_name: ($) => /[a-zA-Z0-9\-_]+/,
+      attribute_value: ($) =>
+        choice(
+          seq('"', repeat(/[^"]/), '"'),
+          seq("'", repeat(/[^']/), "'"),
+          /[^ \t\r\n>]+/
+        ),
+      text: ($) => /[^<>@ \t\r\n][^<>@]*/,
 
-    page_directive: ($) => seq("page", optional(seq(/\s+/, $.string_literal))),
+      // C# statements and expressions will be replaced with injections
+      _statement: ($) => choice($.raw_csharp), // Placeholder
+      _expression: ($) => choice($.raw_csharp), // Placeholder
+      raw_csharp: ($) => prec.right(repeat1(/./)), // Catch-all for now
+      // Control structures
+      if_statement: ($) =>
+        prec.right(
+          seq(
+            "@if",
+            "(",
+            $._expression,
+            ")",
+            "{",
+            optional($.html_block),
+            "}",
+            repeat($.else_if_clause),
+            optional($.else_clause)
+          )
+        ),
+      else_if_clause: ($) =>
+        seq("else if", "(", $._expression, ")", "{", optional($.html_block), "}"),
+      else_clause: ($) => seq("else", "{", optional($.html_block), "}"),
+      switch_statement: ($) =>
+        seq(
+          "@switch",
+          "(",
+          $._expression,
+          ")",
+          "{",
+          repeat($.switch_case),
+          "}"
+        ),
+      switch_case: ($) =>
+        seq(
+          choice("case", "default"),
+          optional($._expression),
+          ":",
+          repeat($._statement)
+        ),
 
-    model_directive: ($) => seq("model", /\s+/, $.csharp_type_injection),
+      for_statement: ($) =>
+        seq(
+          "@for",
+          "(",
+          optional($._expression),
+          ";",
+          optional($._expression),
+          ";",
+          optional($._expression),
+          ")",
+          "{",
+          optional($.html_block),
+          "}"
+        ),
 
-    using_directive: ($) => seq("using", /\s+/, $.csharp_using_injection),
+      foreach_statement: ($) =>
+        seq(
+          "@foreach",
+          "(",
+          "var",
+          $.identifier,
+          "in",
+          $._expression,
+          ")",
+          "{",
+          optional($.html_block),
+          "}"
+        ),
+      while_statement: ($) =>
+        seq(
+          "@while",
+          "(",
+          $._expression,
+          ")",
+          "{",
+          optional($.html_block),
+          "}"
+        ),
+      try_statement: ($) =>
+        seq(
+          "@try",
+          "{",
+          repeat($._block),
+          "}",
+          repeat($.catch_clause),
+          optional($.finally_clause)
+        ),
+      catch_clause: ($) =>
+        seq(
+          "catch",
+          optional(seq("(", $.identifier, optional($.identifier), ")")),
+          "{",
+          repeat($._block),
+          "}"
+        ),
+      finally_clause: ($) => seq("finally", "{", repeat($._block), "}"),
 
-    inject_directive: ($) =>
-      seq("inject", /\s+/, $.csharp_type_injection, /\s+/, $.identifier),
-
-    layout_directive: ($) =>
-      seq("layout", optional(seq(/\s+/, choice($.string_literal, "null")))),
-
-    section_directive: ($) =>
-      seq(
-        "section",
-        /\s+/,
-        $.identifier,
-        optional(seq(/\s+/, "{", repeat($._item), "}")),
-      ),
-
-    // Code blocks @{ ... }
-    razor_code_block: ($) => seq("@{", $.csharp_code_injection, "}"),
-
-    // Inline expressions
-    razor_expression: ($) =>
-      choice(
-        seq("@(", $.csharp_expression_injection, ")"),
-        seq("@", $.csharp_simple_injection),
-      ),
-
-    // Control structures
-    razor_control_structure: ($) =>
-      choice(
-        $.razor_if,
-        $.razor_foreach,
-        $.razor_for,
-        $.razor_while,
-        $.razor_using,
-        $.razor_try,
-        $.razor_switch,
-      ),
-
-    razor_try: ($) =>
-      seq(
-        "@try",
-        "{",
-        $.razor_block,
-        "}",
-        "catch",
-        "{",
-        $.razor_block,
-        "}",
-        optional(seq(
-        "finally",
-        "{",
-        $.razor_block,
-        "}",
-        )),
-      ),
-
-    razor_if: ($) =>
-      seq(
-        "@if",
-        "(",
-        $.csharp_expression_injection,
-        ")",
-        $.razor_block,
-        optional(repeat($.razor_else_if)),
-        optional($.razor_else),
-      ),
-
-    razor_else_if: ($) =>
-      seq(
-        "else",
-        /\s+/,
-        "if",
-        "(",
-        $.csharp_expression_injection,
-        ")",
-        $.razor_block,
-      ),
-
-    razor_else: ($) => seq("else", $.razor_block),
-
-    razor_foreach: ($) =>
-      seq("@foreach", "(", $.csharp_foreach_injection, ")", $.razor_block),
-
-    razor_for: ($) =>
-      seq("@for", "(", $.csharp_for_injection, ")", $.razor_block),
-
-    razor_while: ($) =>
-      seq("@while", "(", $.csharp_expression_injection, ")", $.razor_block),
-
-    razor_using: ($) =>
-      seq(
-        "@using",
-        "(",
-        $.csharp_using_statement_injection,
-        ")",
-        $.razor_block,
-      ),
-
-    razor_switch: ($) =>
-      seq(
-        "@switch",
-        "(",
-        $.csharp_expression_injection,
-        ")",
-        "{",
-        repeat(choice($.razor_case, $.razor_default)),
-        "}",
-      ),
-
-    razor_case: ($) =>
-      seq("case", $.csharp_expression_injection, ":", repeat($._item)),
-
-    razor_default: ($) => seq("default:", repeat($._item)),
-
-    razor_block: ($) => choice(seq("{", repeat($._item), "}"), $._item),
-
-    // Injection points for C# content
-    csharp_type_injection: ($) => /[^\r\n@]+/,
-    csharp_using_injection: ($) => /[^\r\n@;]+/,
-    csharp_code_injection: ($) => /[^}]*/,
-    csharp_expression_injection: ($) => /[^)]+/,
-    csharp_simple_injection: ($) =>
-      /[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*/,
-    csharp_foreach_injection: ($) => /[^)]+/,
-    csharp_for_injection: ($) => /[^)]+/,
-    csharp_using_statement_injection: ($) => /[^)]+/,
-
-    // Basic tokens
-    identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
-    string_literal: ($) =>
-      choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'")),
-    text: ($) => /[^@<]+/,
-
-    // Razor comments
-    razor_comment: ($) => seq("@*", /[^*]*\*+([^@*][^*]*\*+)*/, "@"),
-  },
-});
+      _newline: ($) => choice("\n", "\r", "\r\n"),
+      identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
+      parenthesized_expression: ($) =>
+        seq("(", repeat($._expression), ")"),
+      member_access: ($) =>
+        seq($.identifier, repeat1(seq(".", $.identifier))),
+    },
+  }
+);

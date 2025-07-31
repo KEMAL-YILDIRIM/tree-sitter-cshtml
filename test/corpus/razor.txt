@@ -1,667 +1,115 @@
-===================================
-Razor Email pattern (auto escape @)
-===================================
-<p>john@john.LastName</p>
+==============================
+Page Directive
+==============================
+@page "/users"
 ---
+(document
+  (page_directive
+    (page_directive_path)))
 
-(cshtml (content))
-
-===================================
-Razor Escaped @@ + implicit expr
-===================================
-<p>Username: @@@user.Username</p>
+==============================
+Code Block
+==============================
+@{ var x = 1; }
 ---
-
-(cshtml
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Escaped @@
-===================================
-<p>Username: @@(user.Username)</p>
----
-
-(cshtml
-  (content))
-
-===================================
-Razor Imp licit expressions
-===================================
-<p>@john</p>
----
-
-(cshtml
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Imp licit expressions with accessor
-===================================
-<p>@DateTime.Now</p>
----
-
-(cshtml
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Imp licit called expressions TODO: test not detailed enough
-===================================
-<p>@DateTime.IsLeapYear(2016)</p>
----
-
-(cshtml
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Imp licit await expression TODO: test not detailed enough
-===================================
-<p>@await DoSomething("hello", "world")</p>
----
-
-(cshtml
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Imp licit expressions reject generics TODO: idk this prolly isn't detailed enough
-===================================
-<p>@GenericMethod<int>()</p>
----
-
-(cshtml
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Imp licit expression function call with space TODO: test not detailed enough
-===================================
-<p>@await DoSomething("hello", "world")</p>
----
-
-(cshtml
-      (content)
-      (implicit_expr)
-      (content))
-
-===================================
-Razor Exp licit Razor expressions
-===================================
-<p>Last week this time: @(DateTime.Now - TimeSpan.FromDays(7))</p>
----
-
-(cshtml
-  (content)
-  (explicit_expr
-    (binary_expression
-      (member_access_expression
-        (identifier)
-        (identifier))
-      (invocation_expression
-        (member_access_expression
-          (identifier)
-          (identifier))
-        (argument_list
-          (argument
-            (integer_literal))))))
-  (content))
-
-===================================
-Razor Exp licit expr with preceding letter
-===================================
-<p>Age@(joe.Age)</p>
----
-
-(cshtml
-  (content)
-  (explicit_expr
-    (member_access_expression
-      (identifier)
-      (identifier)))
-  (content))
-
-===================================
-Razor Exp licit expr with generic method
-===================================
-<p>@(GenericMethod<int>())</p>
----
-
-(cshtml
-  (content)
-  (explicit_expr
-    (invocation_expression
-      (generic_name
-        (identifier)
-        (type_argument_list
-          (predefined_type)))
-      (argument_list)))
-  (content))
-
-===================================
-Razor code blocks
-===================================
-@{
-  var quote = "hello";
-}
-
-<p>@quote</p>
----
-
-(cshtml
+(document
   (code_block
-    (local_declaration_statement
-      (variable_declaration
-        (implicit_type)
-        (variable_declarator
+    (raw_csharp)))
+
+==============================
+Expression Block (Explicit)
+==============================
+@(User.Name)
+---
+(document
+  (expression_block
+    (raw_csharp)))
+
+==============================
+Expression Block (Implicit)
+==============================
+@User.Name
+---
+(document
+  (html_block
+    (_html
+      (expression_block
+        (member_access
           (identifier)
-          (equals_value_clause
-            (string_literal
-              (string_literal_fragment)))))))
-  (content)
-  (implicit_expr)
-  (content))
-
-===================================
-Razor Code block implicit transitions to HTML
-===================================
-@{
-    var inCSharp = true;
-    <p>Now in HTML, was in C# @inCSharp</p>
-}
----
-
-(cshtml
-  (code_block
-    (local_declaration_statement
-      (variable_declaration
-        (implicit_type)
-        (variable_declarator
-          (identifier)
-          (equals_value_clause
-            (boolean_literal)))))
-    (implicit_html)))
-
-===================================
-Razor code blocks with local functions
-===================================
-@{
-    void RenderName(string name)
-    {
-        <p>Name: <strong>@name</strong></p>
-    }
-
-    RenderName("Mahatma Gandhi");
-    RenderName("Martin Luther King, Jr.");
-}
----
-
-(cshtml
-  (code_block
-    (local_function_statement
-      (predefined_type)
-      (identifier)
-      (parameter_list
-        (parameter
-          (predefined_type)
-          (identifier)))
-      (block
-        (implicit_html)))
-    (expression_statement
-      (invocation_expression
-        (identifier)
-        (argument_list
-          (argument
-            (string_literal
-              (string_literal_fragment))))))
-    (expression_statement
-      (invocation_expression
-        (identifier)
-        (argument_list
-          (argument
-            (string_literal
-              (string_literal_fragment))))))))
-
-===================================
-Razor code blocks explicit line transition
-===================================
-@if (people.Length > 2)
-{
-    @:Name: @person.Name
-}
----
-
-(cshtml
-  (razor_if
-    (binary_expression
-      (member_access_expression
-        (identifier)
-        (identifier))
-      (integer_literal))
-    (block
-      (explicit_line_html
-        (content)
-        (implicit_expr)))))
-
-===================================
-Razor If
-===================================
-@if (value % 2 == 0)
-{
-    <p>The value was even.</p>
-}
----
-
-(cshtml
-  (razor_if
-    (binary_expression
-      (binary_expression
-        (identifier)
-        (integer_literal))
-      (integer_literal))
-    (block
-      (implicit_html))))
-
-===================================
-Razor Else
-===================================
-@if (value % 2 == 0)
-{
-    <p>The value was even.</p>
-}
-else
-{
-    <p>The value is odd.</p>
-}
----
-
-(cshtml
-  (razor_if
-    (binary_expression
-      (binary_expression
-        (identifier)
-        (integer_literal))
-      (integer_literal))
-    (block
-      (implicit_html))
-    (block
-      (implicit_html))))
-
-===================================
-Razor Else if
-===================================
-@if (value % 2 == 0)
-{
-    <p>The value was even.</p>
-}
-else if (value >= 1337)
-{
-    <p>The value is large.</p>
-}
-else
-{
-    <p>The value is odd and small.</p>
-}
----
-
-(cshtml
-  (razor_if
-    (binary_expression
-      (binary_expression
-        (identifier)
-        (integer_literal))
-      (integer_literal))
-    (block
-      (implicit_html))
-    (razor_if
-      (binary_expression
-        (identifier)
-        (integer_literal))
-      (block
-        (implicit_html))
-      (block
-        (implicit_html)))))
-
-
-===================================
-Razor Switch statement
-===================================
-@switch (value)
-{
-    case 1:
-        <p>The value is 1!</p>
-        break;
-    case 1337:
-        <p>Your number is 1337!</p>
-        break;
-    default:
-        <p>Your number wasn't 1 or 1337.</p>
-        break;
-}
----
-
-(cshtml
-  (switch_statement
-    (identifier)
-    (switch_body
-      (switch_section
-        (case_switch_label
-          (integer_literal))
-        (implicit_html)
-        (break_statement))
-      (switch_section
-        (case_switch_label
-          (integer_literal))
-        (implicit_html)
-        (break_statement))
-      (switch_section
-        (default_switch_label)
-        (implicit_html)
-        (break_statement)))))
-
-===================================
-Razor For
-===================================
-@for (var i = 0; i < people.Length; i++)
-{
-    var person = people[i];
-    <p>Name: @person.Name</p>
-    <p>Age: @person.Age</p>
-}
----
-
-(cshtml
-  (for_statement
-    (variable_declaration
-      (implicit_type)
-      (variable_declarator
-        (identifier)
-        (equals_value_clause
-          (integer_literal))))
-    (binary_expression
-      (identifier)
-      (member_access_expression
-        (identifier)
-        (identifier)))
-    (postfix_unary_expression
-      (identifier))
-    (block
-      (local_declaration_statement
-        (variable_declaration
-          (implicit_type)
-          (variable_declarator
-            (identifier)
-            (equals_value_clause
-              (element_access_expression
-                (identifier)
-                (bracketed_argument_list
-                  (argument
-                    (identifier))))))))
-      (implicit_html)
-      (implicit_html))))
-
-===================================
-Razor Foreach
-===================================
-@foreach (var person in people)
-{
-    <p>Name: @person.Name</p>
-    <p>Age: @person.Age</p>
-}
----
-
-(cshtml
-  (razor_for_each
-    (implicit_type)
-    (identifier)
-    (identifier)
-    (block
-      (implicit_html)
-      (implicit_html))))
-
-===================================
-Razor While
-===================================
-@{ var i = 0; }
-@while (i < people.Length)
-{
-    var person = people[i];
-    <p>Name: @person.Name</p>
-    <p>Age: @person.Age</p>
-
-    i++;
-}
----
-
-(cshtml
-  (code_block
-    (local_declaration_statement
-      (variable_declaration
-        (implicit_type)
-        (variable_declarator
-          (identifier)
-          (equals_value_clause
-            (integer_literal))))))
-  (content)
-  (while_statement
-    (binary_expression
-      (identifier)
-      (member_access_expression
-        (identifier)
-        (identifier)))
-    (block
-      (local_declaration_statement
-        (variable_declaration
-          (implicit_type)
-          (variable_declarator
-            (identifier)
-            (equals_value_clause
-              (element_access_expression
-                (identifier)
-                (bracketed_argument_list
-                  (argument
-                    (identifier))))))))
-      (implicit_html)
-      (implicit_html)
-      (expression_statement
-        (postfix_unary_expression
-          (identifier))))))
-
-===================================
-Razor Do while
-===================================
-@{ var i = 0; }
-@do
-{
-    var person = people[i];
-    <p>Name: @person.Name</p>
-    <p>Age: @person.Age</p>
-
-    i++;
-} while (i < people.Length);
----
-
-(cshtml
-  (code_block
-    (local_declaration_statement
-      (variable_declaration
-        (implicit_type)
-        (variable_declarator
-          (identifier)
-          (equals_value_clause
-            (integer_literal))))))
-  (content)
-  (do_statement
-    (block
-      (local_declaration_statement
-        (variable_declaration
-          (implicit_type)
-          (variable_declarator
-            (identifier)
-            (equals_value_clause
-              (element_access_expression
-                (identifier)
-                (bracketed_argument_list
-                  (argument
-                    (identifier))))))))
-      (implicit_html)
-      (implicit_html)
-      (expression_statement
-        (postfix_unary_expression
           (identifier))))
-    (binary_expression
-      (identifier)
-      (member_access_expression
-        (identifier)
-        (identifier)))))
+    (_html
+      (text))))
 
-===================================
-Razor Using
-===================================
-@page "/"
-@using BlazorPrettycode
-<PrettyCode CodeFile="snippets/demo.html" />
+==============================
+HTML Block
+==============================
+<div><p>Hello</p></div>
 ---
+(document
+  (html_block
+    (_html (tag name: (tag_name)))
+    (_html (tag name: (tag_name)))
+    (_html (text))
+    (_html (tag name: (tag_name)))
+    (_html (tag name: (tag_name)))))
 
-(cshtml
-  (razor_page
-		(razor_using
-			(invocation_expression
-				(member_access_expression
-					(identifier)
-					(identifier))
-				(argument_list))
-			(block
-				(implicit_html))))
-
-===================================
-Razor Using
-===================================
-@using (Html.BeginForm())
-{
-    <div> Email: <input type="email" id="Email" value=""> <button>Register</button> </div>
-}
+==============================
+If Statement
+==============================
+@if (true) { <p>True</p> }
 ---
+(document
+  (if_statement
+    (raw_csharp)
+    (html_block
+      (_html (tag name: (tag_name)))
+      (_html (text))
+      (_html (tag name: (tag_name))))))
 
-(cshtml
-  (razor_using
-    (invocation_expression
-      (member_access_expression
-        (identifier)
-        (identifier))
-      (argument_list))
-    (block
-      (implicit_html))))
-
-===================================
-Razor Try
-===================================
-@try
-{
-    throw new InvalidOperationException("You did something invalid.");
-}
-catch (Exception ex) {
-    <p>The exception message: @ex.Message</p>
-}
-finally {
-    <p>The finally statement.</p>
-}
+==============================
+If-Else Statement
+==============================
+@if (false) { } else { <p>False</p> }
 ---
+(document
+  (if_statement
+    (raw_csharp)
+    (html_block
+      (_html (text))
+      (_html (tag name: (tag_name)))
+      (_html (text))
+      (_html (tag name: (tag_name))))
+    (else_clause
+      (html_block
+        (_html (tag name: (tag_name)))
+        (_html (text))
+        (_html (tag name: (tag_name)))))))
 
-(cshtml
-  (try_statement
-    (block
-      (throw_statement
-        (object_creation_expression
-          (identifier)
-          (argument_list
-            (argument
-              (string_literal
-                (string_literal_fragment)))))))
-    (catch_clause
-      (catch_declaration
-        (identifier)
-        (identifier))
-      (block
-        (implicit_html)))
-    (finally_clause
-      (block
-        (implicit_html)))))
-
-===================================
-Razor Lock
-===================================
-@lock (SomeLock)
-{
-    // Do critical section work
-}
+==============================
+For Statement
+==============================
+@for (var i = 0; i < 10; i++) { <p>@i</p> }
 ---
+(document
+  (for_statement
+    (raw_csharp)
+    (raw_csharp)
+    (raw_csharp)
+    (html_block
+      (_html (tag name: (tag_name)))
+      (_html (expression_block (identifier)))
+      (_html (tag name: (tag_name))))))
 
-(cshtml
-  (lock_statement
+==============================
+Foreach Statement
+==============================
+@foreach (var item in items) { <p>@item</p> }
+---
+(document
+  (foreach_statement
     (identifier)
-    (block
-      (comment))))
-
-===================================
-Razor Comments
-===================================
-@{
-    /* C# comment */
-    // Another C# comment
-}
-@(Name)// this is normal HTML content
-/* this is also HTML */
-
-<!-- HTML content -->
-// this is normal HTML content
----
-
-(cshtml
-  (code_block
-    (comment)
-    (comment))
-  (content)
-  (explicit_expr
-    (identifier))
-  (content))
-
-==================
-Mixed HTML and Razor
-==================
-
-@model List<User>
-<div class="users">
-    @foreach (var user in Model)
-    {
-        <div class="user" data-id="@user.Id">
-            <h3>@user.Name</h3>
-            <p>@user.Email</p>
-        </div>
-    }
-</div>
-
----
-
-(source_file
-  (razor_directive
-    (model_directive
-      (csharp_type_injection)))
-  (html_content)
-  (razor_foreach
-    (csharp_foreach_injection)
-    (razor_block
-      (html_content)
-      (razor_expression
-        (csharp_simple_injection))
-      (html_content)
-      (razor_expression
-        (csharp_simple_injection))
-      (html_content))))
+    (raw_csharp)
+    (html_block
+      (_html (tag name: (tag_name)))
+      (_html (expression_block (identifier)))
+      (_html (tag name: (tag_name))))))
