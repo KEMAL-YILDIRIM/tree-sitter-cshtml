@@ -1,0 +1,30 @@
+@page "/users/{id:int}"
+@model UserViewModel
+
+<div class="container">
+    @if (Model.IsAuthenticated)
+    {
+        <h1>Welcome, @Model.User.Name!</h1>
+        <p>Your role: @Model.User.Role</p>
+        
+        @foreach (var notification in Model.Notifications)
+        {
+            <div class="alert alert-info">
+                @notification.Message
+            </div>
+        }
+    }
+    else
+    {
+        <p>Please <a href="/login">log in</a> to continue.</p>
+    }
+</div>
+
+@{
+    var currentTime = DateTime.Now;
+    var greeting = currentTime.Hour < 12 ? "Good morning" : "Good afternoon";
+}
+
+<footer>
+    <p>@greeting! Current time: @currentTime.ToString("HH:mm")</p>
+</footer>

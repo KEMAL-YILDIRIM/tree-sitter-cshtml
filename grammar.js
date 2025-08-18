@@ -3,8 +3,10 @@ module.exports = grammar(
     name: "cshtml",
     conflicts: ($) => [
       [$._block, $._html],
+      [$.text, $.expression_block],
+      [$._html, $.switch_case],
     ],
-    externals: ($) => [$._eof],
+    externals: ($) => [],
     extras: ($) => [$.comment, /\s+/],
     word: ($) => $.identifier,
 
@@ -13,6 +15,11 @@ module.exports = grammar(
       _block: ($) =>
         choice(
           $.page_directive,
+          $.model_directive,
+          $.using_directive,
+          $.inject_directive,
+          $.layout_directive,
+          $.section_directive,
           $.code_block,
           $.functions_directive,
           $.expression_block,
@@ -26,33 +33,82 @@ module.exports = grammar(
         ),
 
       page_directive: ($) =>
-        seq(
-          "@page",
-          $.page_directive_path,
-          optional($._newline)
+        choice(
+          seq("@page", $.page_directive_path, optional($._newline)),
+          prec(-1, seq("@page", optional($._newline)))
         ),
       page_directive_path: ($) => seq('"', repeat(/[^"]/), '"'),
-      code_block: ($) => seq("@{", repeat($._statement), "}"),
+      
+      model_directive: ($) =>
+        seq(
+          "@model",
+          $.type_name,
+          optional($._newline)
+        ),
+      
+      using_directive: ($) =>
+        seq(
+          "@using",
+          $.namespace_name,
+          optional($._newline)
+        ),
+      
+      inject_directive: ($) =>
+        seq(
+          "@inject",
+          $.type_name,
+          $.identifier,
+          optional($._newline)
+        ),
+      
+      layout_directive: ($) =>
+        seq(
+          "@layout",
+          choice($.string_literal, $.identifier),
+          optional($._newline)
+        ),
+      
+      section_directive: ($) =>
+        seq(
+          "@section",
+          $.identifier,
+          "{",
+          optional($.html_block),
+          "}"
+        ),
+      
+      type_name: ($) => /[a-zA-Z_][a-zA-Z0-9_.<>]*\??/,
+      namespace_name: ($) => /[a-zA-Z_][a-zA-Z0-9_.]*/,
+      string_literal: ($) => choice(
+        seq('"', repeat(/[^"]/), '"'),
+        seq("'", repeat(/[^']/), "'")
+      ),
+      code_block: ($) => seq("@{", repeat($.code_statement), "}"),
+      code_statement: ($) => choice($.raw_csharp_statement),
+      raw_csharp_statement: ($) => /[^}]+/,
 
       functions_directive: ($) =>
-        seq("@functions", "{", repeat($._statement), "}"),
+        seq("@functions", "{", repeat(choice($.csharp_code, $.csharp_block)), "}"),
+      csharp_code: ($) => /[^{}]+/,
+      csharp_block: ($) => seq("{", repeat(choice($.csharp_code, $.csharp_block)), "}"),
       expression_block: ($) =>
         choice(
-          seq("@(", repeat($._expression), ")"),
-          seq(
-            "@",
-            choice(
-              $.member_access,
-              $.identifier,
-              $.parenthesized_expression
-            )
-          )
+          seq("@(", $._expression, ")"),
+          $.implicit_expression
         ),
+      implicit_expression: ($) =>
+        seq("@", $.identifier_or_member_access),
+      identifier_or_member_access: ($) =>
+        choice(
+          $.member_access_token,
+          $.identifier
+        ),
+      member_access_token: ($) => /[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+/,
       html_block: ($) => prec.right(repeat1($._html)),
       _html: ($) => choice(
-        seq($.tag),
-        seq($.text),
-        seq($.expression_block)
+        $.tag,
+        $.text,
+        $.expression_block
       ),
       comment: ($) => seq("@*", repeat(/[^*]*\*+([^@][^*]*\*+)* /), "@"),
       tag: ($) =>
@@ -78,15 +134,16 @@ module.exports = grammar(
           seq("'", repeat(/[^']/), "'"),
           /[^ \t\r\n>]+/
         ),
-      text: ($) => /[^<>@ \t\r\n][^<>@]*/,
+      text: ($) => prec(-1, /[^<@]+/),
 
       // C# statements and expressions will be replaced with injections
-      _statement: ($) => choice($.raw_csharp), // Placeholder
-      _expression: ($) => choice($.raw_csharp), // Placeholder
-      raw_csharp: ($) => prec.right(repeat1(/./)), // Catch-all for now
+      _statement: ($) => choice($.csharp_statement),
+      _expression: ($) => choice($.raw_csharp),
+      raw_csharp: ($) => /[^});\n]+/,
+      csharp_statement: ($) => /[^}]+/,
       // Control structures
       if_statement: ($) =>
-        prec.right(
+        prec.right(1,
           seq(
             "@if",
             "(",
@@ -100,7 +157,7 @@ module.exports = grammar(
           )
         ),
       else_if_clause: ($) =>
-        seq("else if", "(", $._expression, ")", "{", optional($.html_block), "}"),
+        seq("else", "if", "(", $._expression, ")", "{", optional($.html_block), "}"),
       else_clause: ($) => seq("else", "{", optional($.html_block), "}"),
       switch_statement: ($) =>
         seq(
@@ -113,27 +170,26 @@ module.exports = grammar(
           "}"
         ),
       switch_case: ($) =>
-        seq(
-          choice("case", "default"),
-          optional($._expression),
-          ":",
-          repeat($._statement)
+        choice(
+          seq("case", $._expression, ":", repeat($._statement)),
+          seq("default", ":", repeat($._statement))
         ),
 
       for_statement: ($) =>
         seq(
           "@for",
           "(",
-          optional($._expression),
+          optional($.for_expression),
           ";",
-          optional($._expression),
+          optional($.for_expression),
           ";",
-          optional($._expression),
+          optional($.for_expression),
           ")",
           "{",
           optional($.html_block),
           "}"
         ),
+      for_expression: ($) => /[^;)]+/,
 
       foreach_statement: ($) =>
         seq(
@@ -182,7 +238,7 @@ module.exports = grammar(
       parenthesized_expression: ($) =>
         seq("(", repeat($._expression), ")"),
       member_access: ($) =>
-        seq($.identifier, repeat1(seq(".", $.identifier))),
+        prec.left(2, seq($.identifier, repeat1(seq(".", $.identifier)))),
     },
   }
 );

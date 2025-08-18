@@ -76,7 +76,23 @@
           "named": true
         },
         {
+          "type": "inject_directive",
+          "named": true
+        },
+        {
+          "type": "layout_directive",
+          "named": true
+        },
+        {
+          "type": "model_directive",
+          "named": true
+        },
+        {
           "type": "page_directive",
+          "named": true
+        },
+        {
+          "type": "section_directive",
           "named": true
         },
         {
@@ -85,6 +101,10 @@
         },
         {
           "type": "try_statement",
+          "named": true
+        },
+        {
+          "type": "using_directive",
           "named": true
         },
         {
@@ -103,7 +123,22 @@
       "required": false,
       "types": [
         {
-          "type": "raw_csharp",
+          "type": "code_statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "code_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "raw_csharp_statement",
           "named": true
         }
       ]
@@ -111,6 +146,30 @@
   },
   {
     "type": "comment",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "csharp_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "csharp_block",
+          "named": true
+        },
+        {
+          "type": "csharp_code",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "csharp_statement",
     "named": true,
     "fields": {}
   },
@@ -152,7 +211,23 @@
           "named": true
         },
         {
+          "type": "inject_directive",
+          "named": true
+        },
+        {
+          "type": "layout_directive",
+          "named": true
+        },
+        {
+          "type": "model_directive",
+          "named": true
+        },
+        {
           "type": "page_directive",
+          "named": true
+        },
+        {
+          "type": "section_directive",
           "named": true
         },
         {
@@ -161,6 +236,10 @@
         },
         {
           "type": "try_statement",
+          "named": true
+        },
+        {
+          "type": "using_directive",
           "named": true
         },
         {
@@ -209,19 +288,11 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
-      "required": false,
+      "multiple": false,
+      "required": true,
       "types": [
         {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "member_access",
-          "named": true
-        },
-        {
-          "type": "parenthesized_expression",
+          "type": "implicit_expression",
           "named": true
         },
         {
@@ -268,7 +339,23 @@
           "named": true
         },
         {
+          "type": "inject_directive",
+          "named": true
+        },
+        {
+          "type": "layout_directive",
+          "named": true
+        },
+        {
+          "type": "model_directive",
+          "named": true
+        },
+        {
           "type": "page_directive",
+          "named": true
+        },
+        {
+          "type": "section_directive",
           "named": true
         },
         {
@@ -277,6 +364,10 @@
         },
         {
           "type": "try_statement",
+          "named": true
+        },
+        {
+          "type": "using_directive",
           "named": true
         },
         {
@@ -295,11 +386,11 @@
       "required": false,
       "types": [
         {
-          "type": "html_block",
+          "type": "for_expression",
           "named": true
         },
         {
-          "type": "raw_csharp",
+          "type": "html_block",
           "named": true
         }
       ]
@@ -337,7 +428,11 @@
       "required": false,
       "types": [
         {
-          "type": "raw_csharp",
+          "type": "csharp_block",
+          "named": true
+        },
+        {
+          "type": "csharp_code",
           "named": true
         }
       ]
@@ -361,6 +456,25 @@
         },
         {
           "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "identifier_or_member_access",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "member_access_token",
           "named": true
         }
       ]
@@ -394,7 +508,22 @@
     }
   },
   {
-    "type": "member_access",
+    "type": "implicit_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier_or_member_access",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "inject_directive",
     "named": true,
     "fields": {},
     "children": {
@@ -403,6 +532,44 @@
       "types": [
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "layout_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "string_literal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "model_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "type_name",
           "named": true
         }
       ]
@@ -414,7 +581,7 @@
     "fields": {},
     "children": {
       "multiple": false,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "page_directive_path",
@@ -429,22 +596,31 @@
     "fields": {}
   },
   {
-    "type": "parenthesized_expression",
+    "type": "raw_csharp_statement",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "section_directive",
     "named": true,
     "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
-          "type": "raw_csharp",
+          "type": "html_block",
+          "named": true
+        },
+        {
+          "type": "identifier",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "raw_csharp",
+    "type": "string_literal",
     "named": true,
     "fields": {}
   },
@@ -456,6 +632,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "csharp_statement",
+          "named": true
+        },
         {
           "type": "raw_csharp",
           "named": true
@@ -514,6 +694,11 @@
     "fields": {}
   },
   {
+    "type": "text",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "try_statement",
     "named": true,
     "fields": {},
@@ -558,7 +743,23 @@
           "named": true
         },
         {
+          "type": "inject_directive",
+          "named": true
+        },
+        {
+          "type": "layout_directive",
+          "named": true
+        },
+        {
+          "type": "model_directive",
+          "named": true
+        },
+        {
           "type": "page_directive",
+          "named": true
+        },
+        {
+          "type": "section_directive",
           "named": true
         },
         {
@@ -570,7 +771,26 @@
           "named": true
         },
         {
+          "type": "using_directive",
+          "named": true
+        },
+        {
           "type": "while_statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "using_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "namespace_name",
           "named": true
         }
       ]
@@ -621,10 +841,6 @@
   },
   {
     "type": ")",
-    "named": false
-  },
-  {
-    "type": ".",
     "named": false
   },
   {
@@ -684,7 +900,23 @@
     "named": false
   },
   {
+    "type": "@inject",
+    "named": false
+  },
+  {
+    "type": "@layout",
+    "named": false
+  },
+  {
+    "type": "@model",
+    "named": false
+  },
+  {
     "type": "@page",
+    "named": false
+  },
+  {
+    "type": "@section",
     "named": false
   },
   {
@@ -693,6 +925,10 @@
   },
   {
     "type": "@try",
+    "named": false
+  },
+  {
+    "type": "@using",
     "named": false
   },
   {
@@ -712,6 +948,10 @@
     "named": false
   },
   {
+    "type": "csharp_code",
+    "named": true
+  },
+  {
     "type": "default",
     "named": false
   },
@@ -720,23 +960,39 @@
     "named": false
   },
   {
-    "type": "else if",
+    "type": "finally",
     "named": false
   },
   {
-    "type": "finally",
-    "named": false
+    "type": "for_expression",
+    "named": true
   },
   {
     "type": "identifier",
     "named": true
   },
   {
+    "type": "if",
+    "named": false
+  },
+  {
     "type": "in",
     "named": false
   },
   {
-    "type": "text",
+    "type": "member_access_token",
+    "named": true
+  },
+  {
+    "type": "namespace_name",
+    "named": true
+  },
+  {
+    "type": "raw_csharp",
+    "named": true
+  },
+  {
+    "type": "type_name",
     "named": true
   },
   {

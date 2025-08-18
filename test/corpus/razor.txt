@@ -14,7 +14,8 @@ Code Block
 ---
 (document
   (code_block
-    (raw_csharp)))
+    (code_statement
+      (raw_csharp_statement))))
 
 ==============================
 Expression Block (Explicit)
@@ -31,14 +32,10 @@ Expression Block (Implicit)
 @User.Name
 ---
 (document
-  (html_block
-    (_html
-      (expression_block
-        (member_access
-          (identifier)
-          (identifier))))
-    (_html
-      (text))))
+  (expression_block
+    (implicit_expression
+      (identifier_or_member_access
+        (member_access_token)))))
 
 ==============================
 HTML Block
@@ -47,11 +44,11 @@ HTML Block
 ---
 (document
   (html_block
-    (_html (tag name: (tag_name)))
-    (_html (tag name: (tag_name)))
-    (_html (text))
-    (_html (tag name: (tag_name)))
-    (_html (tag name: (tag_name)))))
+    (tag name: (tag_name))
+    (tag name: (tag_name))
+    (text)
+    (tag name: (tag_name))
+    (tag name: (tag_name))))
 
 ==============================
 If Statement
@@ -62,9 +59,10 @@ If Statement
   (if_statement
     (raw_csharp)
     (html_block
-      (_html (tag name: (tag_name)))
-      (_html (text))
-      (_html (tag name: (tag_name))))))
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name)))))
 
 ==============================
 If-Else Statement
@@ -75,15 +73,10 @@ If-Else Statement
   (if_statement
     (raw_csharp)
     (html_block
-      (_html (text))
-      (_html (tag name: (tag_name)))
-      (_html (text))
-      (_html (tag name: (tag_name))))
-    (else_clause
-      (html_block
-        (_html (tag name: (tag_name)))
-        (_html (text))
-        (_html (tag name: (tag_name)))))))
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name)))))
 
 ==============================
 For Statement
@@ -92,13 +85,17 @@ For Statement
 ---
 (document
   (for_statement
-    (raw_csharp)
-    (raw_csharp)
-    (raw_csharp)
+    (for_expression)
+    (for_expression)
+    (for_expression)
     (html_block
-      (_html (tag name: (tag_name)))
-      (_html (expression_block (identifier)))
-      (_html (tag name: (tag_name))))))
+      (text)
+      (tag name: (tag_name))
+      (expression_block
+        (implicit_expression
+          (identifier_or_member_access
+            (identifier))))
+      (tag name: (tag_name)))))
 
 ==============================
 Foreach Statement
@@ -110,6 +107,213 @@ Foreach Statement
     (identifier)
     (raw_csharp)
     (html_block
-      (_html (tag name: (tag_name)))
-      (_html (expression_block (identifier)))
-      (_html (tag name: (tag_name))))))
+      (text)
+      (tag name: (tag_name))
+      (expression_block
+        (implicit_expression
+          (identifier_or_member_access
+            (identifier))))
+      (tag name: (tag_name)))))
+
+==============================
+Model Directive
+==============================
+@model UserViewModel
+---
+(document
+  (model_directive
+    (type_name)))
+
+==============================
+Using Directive
+==============================
+@using System.Collections.Generic
+---
+(document
+  (using_directive
+    (namespace_name)))
+
+==============================
+Inject Directive
+==============================
+@inject IUserService UserService
+---
+(document
+  (inject_directive
+    (type_name)
+    (identifier)))
+
+==============================
+Complex Member Access
+==============================
+@Model.User.Profile.Name
+---
+(document
+  (expression_block
+    (implicit_expression
+      (identifier_or_member_access
+        (member_access_token)))))
+
+==============================
+Nested HTML with Multiple Expressions
+==============================
+<div class="user-@Model.Id" data-name="@Model.Name">@Model.Email</div>
+---
+(document
+  (html_block
+    (tag 
+      name: (tag_name)
+      (attribute 
+        name: (attribute_name)
+        value: (attribute_value))
+      (attribute 
+        name: (attribute_name)
+        value: (attribute_value)))
+    (expression_block
+      (implicit_expression
+        (identifier_or_member_access
+          (member_access_token))))
+    (tag name: (tag_name))))
+
+==============================
+Complex Code Block
+==============================
+@{
+    var users = GetUsers();
+    var count = users.Count;
+}
+---
+(document
+  (code_block
+    (code_statement
+      (raw_csharp_statement))))
+
+==============================
+If-Else Chain
+==============================
+@if (user.IsAdmin) { <p>Admin</p> } else if (user.IsModerator) { <p>Moderator</p> } else { <p>User</p> }
+---
+(document
+  (if_statement
+    (raw_csharp)
+    (html_block
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name)))))
+
+==============================
+While Loop
+==============================
+@while (condition) { <p>Loading...</p> }
+---
+(document
+  (while_statement
+    (raw_csharp)
+    (html_block
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name)))))
+
+==============================
+Functions Directive
+==============================
+@functions { public string GetGreeting() { return "Hello"; } }
+---
+(document
+  (functions_directive
+    (csharp_code)
+    (csharp_block
+      (csharp_code))
+    (csharp_code)))
+
+==============================
+Mixed Content
+==============================
+<div>@Model.Name</div><p>@Model.Age</p>
+---
+(document
+  (html_block
+    (tag name: (tag_name))
+    (expression_block
+      (implicit_expression
+        (identifier_or_member_access
+          (member_access_token))))
+    (tag name: (tag_name))
+    (tag name: (tag_name))
+    (expression_block
+      (implicit_expression
+        (identifier_or_member_access
+          (member_access_token))))
+    (tag name: (tag_name))))
+
+==============================
+Empty Page Directive
+==============================
+@page
+---
+(document
+  (page_directive))
+
+==============================
+Layout Directive
+==============================
+@layout "_Layout"
+---
+(document
+  (layout_directive
+    (string_literal)))
+
+==============================
+Section Directive
+==============================
+@section Scripts { <script>console.log('test');</script> }
+---
+(document
+  (section_directive
+    (identifier)
+    (html_block
+      (text)
+      (tag name: (tag_name))
+      (text)
+      (tag name: (tag_name)))))
+
+==============================
+Expression in Attribute
+==============================
+<input type="text" value="@Model.Value" />
+---
+(document
+  (html_block
+    (tag 
+      name: (tag_name)
+      (attribute 
+        name: (attribute_name)
+        value: (attribute_value))
+      (attribute 
+        name: (attribute_name)
+        value: (attribute_value)))))
+
+==============================
+Multiple Directives
+==============================
+@page "/test"
+@model TestModel
+@using System.Linq
+---
+(document
+  (page_directive
+    (page_directive_path))
+  (model_directive
+    (type_name))
+  (using_directive
+    (namespace_name)))

@@ -1,0 +1,15 @@
+@page "/test"
+@model TestModel
+
+<h1>Hello @Model.Name</h1>
+
+@if (Model.IsActive)
+{
+    <p>Active user</p>
+}
+
+@{
+    var message = "Hello World";
+}
+
+<div>@message</div>
